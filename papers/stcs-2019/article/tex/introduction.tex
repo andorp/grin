@@ -1,0 +1,29 @@
+\documentclass[main.tex]{subfiles}
+\begin{document}
+	
+	Over the last few years, the functional programming paradigm has become even more popular and prominent than it was before. More and more industrial applications emerge, the paradigm itself keeps evolving, existing functional languages are being refined day by day, and even completely new languages appear. Yet, it seems the corresponding compiler technology lacks behind a bit.
+	
+	Functional languages come with a multitude of interesting features that allow us to write programs on higher abstraction levels. Some of these features include higher-order functions, laziness and sophisticated type systems based on SystemFC~\cite{systemfc}, some even supporting dependent types. Although these features make writing code more convenient, they also complicate the compilation process.
+	
+	Compiler front ends usually handle these problems very well, but the back ends often struggle to produce efficient low level code. The reason for this is that back ends have a hard time optimizing code containing \emph{functional artifacts}. These functional artifacts are the by-products of high-level language features mentioned earlier. For example, higher-order functions can introduce unknown function calls and laziness can result in implicit value evaluation which can prove to be very hard to optimize. As a consequence, compilers generally compromise on low level efficiency for high-level language features.
+	
+	Moreover, the paradigm itself also encourages a certain programming style which further complicates the situation. Functional code usually consist of many smaller functions, rather than fewer big ones. This style of coding results in more composable programs, but also presents more difficulties for compilation, since optimizing only individual functions is no longer sufficient. 
+	
+	In order to resolve these problems, we need a compiler back end that can optimize across functions as well as allow the optimization of laziness in some way. Also, it would be beneficial if the back end could theoretically handle any front end language.
+	
+	In this paper we present a modern look at the GRIN framework. We explain some of its core concepts, and also provide a number of improvements to it. The main contributions presented in the paper are the following.
+	
+	\hspace{0.5cm}
+	\begin{enumerate}
+		\item Extension of the heap points-to analysis with more accurate basic value tracking
+
+		\item Specification of a type inference algorithm for GRIN using the extended heap points-to analysis
+		
+		\item Implementation of an LLVM back end for the GRIN framework
+		
+		\item Extension of the dead data elimination transformation with typed dummification and an overview of an alternative transformation for producer-consumer groups
+		
+		\item Implementation of an Idris front end for the GRIN framework
+	\end{enumerate}
+	
+\end{document}

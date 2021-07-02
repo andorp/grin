@@ -1,0 +1,74 @@
+\documentclass[main.tex]{subfiles}
+\begin{document}
+	
+	This section will introduce the reader to the state-of-the-art concerning functional language compiler technologies and whole program optimization. It will compare these systems' main goals, advantages, drawbacks and the techniques they use.
+	
+	\subsection{The Glasgow Haskell Compiler}
+
+	GHC~\cite{ghc} is the de facto Haskell compiler. It is an industrial strength compiler supporting Haskell2010 with a multitude of language extensions. It has full support for multi-threading, asynchronous exception handling, incremental compilation and software transactional memory.
+	
+	GHC is the most feature-rich stable Haskell compiler. However, its optimizer part is lacking in two respects. Firstly, neither of its intermediate representations (STG and Core) can express laziness explicitly, which means that the strictness analysis cannot be as optimal as it could be. Secondly, GHC only supports optimization on a per-module basis by default, and only optimizes across modules after inlining certain specific functions. This can drastically limit the information available for the optimization passes, hence decreasing their efficiency. The following sections will show alternative compilation techniques to resolve the issues presented above.
+	
+	\subsection{GRIN}
+	
+	Graph Reduction Intermediate Notation is an intermediate representation for lazy\footnote{Strict semantics can be expressed as well} functional languages. Due to its simplicity and high expressive power, it was utilized by several compiler back ends.
+	
+	\subsubsection{Boquist}
+	
+	The original GRIN framework was developed by U. Boquist, and first described in the article~\cite{boquist-grin}, then in his PhD thesis~\cite{boquist-phd}. This version of GRIN used the Chalmers Haskell-B Compiler~\cite{hbc} as its front end and RISC as its back end. The main focus of the entire framework is to produce highly efficient machine code from high-level lazy functional programs through a series of optimizing code transformations. At that time, Boquist's implementation of GRIN already compared favorably to the existing Glasgow Haskell Compiler of version 4.01.
+	
+	The language itself has very simple syntax and semantics, and is capable of explicitly expressing laziness. It only has very few built-in instructions (\pilcode{store}, \pilcode{fetch} and \pilcode{update}) which can be interpreted in two ways. Firstly, they can be seen as simple heap operations; secondly, they can represent graph reduction semantics~\cite{impl-fun-lang}. For example, we can imagine \pilcode{store} creating a new node, and \pilcode{update} reducing those nodes.
+	
+	GRIN also supports whole program optimization. Whole program optimization is a compiler optimization technique that uses information regarding the entire program instead of localizing the optimizations to functions or translation units. One of the most important whole program analyses used by the framework is the heap-points-to analysis, a variation of Andersen's pointer analysis~\cite{andersen-ptr}.
+	
+	\subsubsection{UHC}
+	
+	The Utrecht Haskell Compiler~\cite{uhc} is a completely standalone Haskell compiler with its own front end. The main idea behind UHC is to use attribute grammars to handle the ever-growing complexity of compiler construction in an easily manageable way. Mainly, the compiler is being used for education, since utilizing a custom system, the programming environment can be fine-tuned for the students, and the error messages can be made more understandable.
+	
+	UHC also uses GRIN as its IR for its back-end part, however the main focus has diverted from low level efficiency, and broadened to the spectrum of the entire compiler framework. It also extended the original IR with synchronous exception handling by introducing new syntactic constructs for \pilcode{try}/\pilcode{catch} blocks~\cite{uhc-exceptional-grin}. Also, UHC can generate code for many different targets including LLVM~\cite{llvm-2004}, .Net, JVM and JavaScript.
+
+	\subsubsection{JHC}
+	
+	JHC~\cite{jhc} is another complete compiler framework for Haskell, developed by John Meacham. JHC's goal is to generate not only efficient, but also very compact code without the need of any runtime. The generated code only has to rely on certain system calls. JHC also has its own front end and back end just like UHC, but they serve different purposes.
+	
+	The front end of JHC uses a very elaborate type system called the pure type system~\cite{pts-berardi, pts-terlouw}. In theory, the pure type system can be seen as a generalization of the lambda cube~\cite{lambda-cube}, in practice it behaves similarly to the Glasgow Haskell Compiler's Core representation. For example, similar transformations can be implemented on them.
+	
+	For its intermediate representation, JHC uses an alternate version of GRIN. Meacham made several modifications to the original specification of GRIN. Some of the most relevant additions are mutable variables, memory regions (heap and stack) and throw-only IO exceptions. JHC's exceptions are rather simple compared to those of UHC, since they can only be thrown, but never caught.
+	
+	JHC generates completely portable ISO C from the intermediate GRIN code.
+	
+	\subsubsection{AJHC}
+	
+	Originally, AJHC~\cite{ajhc} was a fork of JHC, but later it was remerged with all of its functionalities. The main goal of AJHC was to utilize formal methods in systems programming. It was used implementing a NetBSD sound driver in high-level Haskell.
+	
+	\subsubsection{LHC}
+	
+	The LLVM Haskell Compiler~\cite{lhc} is a Haskell compiler made from reusable libraries using JHC-style GRIN as its intermediate representation. As its name suggests, it generates LLVM IR code from the intermediate GRIN.
+	
+	\subsection{Other Intermediate Representations}
+	
+	GRIN is not the only IR available for functional languages. In fact, it is not even the most advanced one. Other representations can either be structurally different or can have different expressive power. For example GRIN and LLVM are both structurally and expressively different representations, because GRIN has monadic structure, while LLVM uses basic blocks, and while GRIN has sum types, LLVM has vector instructions. In general, different design choices can open up different optimization opportunities.
+	
+	\subsubsection{Intel Research Compiler}
+	
+	The Intel Labs Haskell Research Compiler~\cite{hrc} was a result of a long running research project of Intel focusing on functional language compilation. The project's main goal was to generate very efficient code for numerical computations utilizing whole program optimization.
+	
+	The compiler reused the front end part of GHC, and worked with the external Core representation provided by it. Its optimizer part was written in MLton and was a general purpose compiler back end for strict functional languages. Differently from GRIN, it used basic blocks which can open up a whole spectrum of new optimization opportunities. Furthermore, instead of whole program defunctionalization (the generation of global \pilcode{eval}), their compiler used function pointers and data-flow analysis techniques to globally analyze the program. They also supported synchronous exceptions and multi-threading.
+	
+	One of their most relevant optimizations was the SIMD vectorization pass~\cite{hrc-simd}. Using this optimization, they could transform sequential programs into vectorized ones. In conjunction with their other optimizations, they achieved performance metrics comparable to native C~\cite{haskell-gap}.
+	
+	\subsubsection{MLton}
+	
+	MLton~\cite{mlton} is a widely used Standard ML compiler. It also uses whole program optimization, and focuses on efficiency.
+	
+	MLton has a wide array of distinct intermediate representations, each serving a different purpose. Each IR can express a certain aspect of the language more precisely than the others, allowing for more convenient implementation of the respective analyses and transformations. They use a technique similar to defunctionalization called 0CFA, a higher-order control flow analysis. This method serves a very similar purpose to defunctionalization, but instead of following function tags, it tracks function closures. Also, 0CFA can be generalized to k-CFA, where $k$ represents the number of different contexts the analysis distinguishes. The variant used by MLton distinguishes zero different contexts, meaning it is a \textit{context insensitive} analysis. The main advantage of this technique is that it can be applied to higher-order languages as well. 
+	
+	Furthermore, MLton supports contification~\cite{contification}, a control flow based transformation, which turns function calls into continuations. This can expose a lot of additional control flow information, allowing for a broad range of optimizations such as tail recursive function call optimization.
+	
+	As for its back end, MLton has its own native code generator, but it can also generate LLVM IR code~\cite{mlton-llvm}.
+	
+	% \subsection{Compilers with LLVM Back Ends}
+	
+	% In the imperative setting, probably the most well-known compiler with an LLVM back end is Clang~\cite{clang}. Clang's main goal is to provide a production quality compiler with a reusable, library-like structure. However, certain functional language compilers also have LLVM back ends. The two most notable ones are the Glasgow Haskell Compiler~\cite{ghc} and MLton~\cite{mlton-llvm}.
+	
+\end{document}

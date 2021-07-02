@@ -1,0 +1,31 @@
+\documentclass[main.tex]{subfiles}
+\begin{document}
+	\newlength{\vDist}
+	\newlength{\hDist}
+	\begin{tikzpicture}[align=center, draw=black, scale=1]
+	
+	% add styles
+	\tikzset{styRectDef/.style = {rectangle, rounded corners, draw=black, inner xsep=6mm, inner ysep=3mm}}
+	\tikzcustom{}
+	
+	% set distances
+	\setlength{\vDist}{0.75cm}
+	\setlength{\hDist}{1.75cm}
+	
+	% nodes
+	\node [styRectGn] (grin-cg) {GRIN code gen.};
+	\node [styRectBl, right=\hDist of grin-cg] (dde) {DDE};
+	\node [styRectBl, above=\vDist of dde] (reg-opts-1) {Regular opts.};
+	\node [styRectBl, below=\vDist of dde] (reg-opts-2) {Regular opts.};
+	\node [styRectGn, right=\hDist of dde] (bin-gen) {Binary generation};
+	
+	\node [styLabel] (iteratively1) at ([shift={(1.25,0.45)}]reg-opts-1) {iteratively};
+	\node [styLabel] (iteratively2) at ([shift={(1.25,0.45)}]reg-opts-2) {iteratively};
+	
+	% connections
+	\draw[styConn, bend left]  (grin-cg) to (reg-opts-1);
+	\draw[styConn] 						 (reg-opts-1) to (dde);
+	\draw[styConn] 						 (dde) to (reg-opts-2);
+	\draw[styConn, bend right] (reg-opts-2) to (bin-gen);
+	\end{tikzpicture}
+\end{document}

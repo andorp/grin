@@ -1,0 +1,67 @@
+\documentclass[runningheads]{llncs}
+%\documentclass{actacyb}
+%\documentclass[10pt,a4paper,oneside]{article}
+
+\usepackage{style}
+\usepackage{subfiles}
+
+\begin{document}
+	
+	\title{A modern look at GRIN,\\ an optimizing functional language back end\thanks{ The project has been supported by the European Union, co-financed by the European Social Fund (EFOP-3.6.3-VEKOP-16-2017-00002)}}
+	\titlerunning{A modern look at GRIN}
+	
+	\institute
+	{
+		Eötvös Loránd University, Budapest, Hungary\\
+		\email{peter.d.podlovics@gmail.com}\\
+		\and
+		\email{\{csaba.hruska, andor.penzes\}@gmail.com}
+	}
+
+	\date{\today}
+	\author
+	{ 
+		Péter Dávid Podlovics\inst{1} \and 
+		Csaba Hruska\inst{2} \and 
+		Andor Pénzes\inst{2}
+	}
+	\authorrunning{P. Podlovics \and Cs. Hruska \and A. Pénzes}
+	
+	\maketitle
+	\subfile{abstract}
+	
+	\section{Introduction} \label{sec:intro}
+	\subfile{introduction}
+	
+	\section{Graph Reduction Intermediate Notation}
+	\subfile{grin}
+	
+	\section{Related Work}
+	\subfile{related-work}
+	
+	\section{Compiling to LLVM}
+	\subfile{llvm}
+	
+	\section{Dead Code Elimination}
+	\subfile{dce}
+	
+	\section{Dead Data Elimination} \label{sec:dde}
+	\subfile{dde}
+	
+	\section{Idris Front End} \label{sec:idris-front-end}
+	\subfile{idris-front-end}
+	
+	\section{Results}
+	\subfile{results}
+	
+	\section{Future Work}
+	\subfile{future-work}
+	
+	\section{Conclusions}
+	\subfile{conclusions}
+		
+	\newpage
+	\subfile{bibliography}
+
+	
+\end{document}

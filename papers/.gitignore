@@ -6,4 +6,10 @@
 *.out
 *.gz
 *.listing
+*.vrb
+*.uN9447
+*.snm
+*.nav
 **/_minted-main/
+*.pygtex
+*.pygstyle

@@ -1,0 +1,249 @@
+\ProvidesPackage{style}
+
+\frenchspacing
+\setcounter{tocdepth}{1}
+
+\setbeamertemplate{footline}[miniframes theme no subsection]
+\setbeamertemplate{itemize items}[ball]
+
+\usepackage[toc,page]{appendix}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{cite}
+\usepackage{url}
+\usepackage{caption}
+\usepackage{graphicx}
+\graphicspath{ {../img/} }
+
+%\usepackage{enumitem}
+%\setlist{nosep}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{etoolbox}
+\usepackage{adjustbox}
+\usepackage{latexsym,amssymb,amsmath,mathtools}
+
+\usepackage{marvosym}
+% bugfix for marvosym (must be after include)
+\renewcommand{\mvchr}[1]{\mbox{\mvs\symbol{#1}}}
+
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+
+\DeclarePairedDelimiter\set\{\}
+
+\hypersetup{%
+	colorlinks=true,% hyperlinks will be coloured
+	allcolors=blue,% hyperlink text will be green
+	linkcolor=
+}
+
+\usepackage{minted}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{lstautogobble}
+\definecolor{identifierColor}{rgb}{0.65,0.16,0.16}
+\definecolor{keywordColor}{rgb}{0.65,0.20,0.90}
+\lstnewenvironment{code}
+{	\lstset
+	{ language   			= Haskell
+		, basicstyle  		= \small\ttfamily
+		, breaklines      = true
+		, backgroundcolor = \color{gray!15}
+		, frame 					= single
+		, autogobble  		= true
+		, xleftmargin     = 0.1cm
+		, xrightmargin    = 0.2cm
+		%, identifierstyle = \color{gray}
+		, keywordstyle    = \color{violet}
+		, morekeywords    = {}
+		, escapechar      = \%
+	}
+}
+{}
+
+\PassOptionsToPackage{usenames,dvipsnames,svgnames}{xcolor}  
+\usepackage{tikz}
+\usetikzlibrary{arrows,arrows.meta,shapes,positioning,patterns,automata,calc}
+
+\usepackage{pgfplots}
+\usepackage{tcolorbox}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{zref-savepos}
+\usepackage{diagbox}
+\usepackage{colortbl}
+\tcbuselibrary{skins}
+\tcbuselibrary{minted}
+
+\newcolumntype{Y}{>{\raggedleft\arraybackslash}X}
+\tcbset
+{ tab2/.style = 
+	{ enhanced
+		, fonttitle=\bfseries
+		, fontupper=\normalsize\sffamily
+		, colback  = gray!5!white
+		, colframe = gray!75!black
+		, colbacktitle=yellow!40!white
+		, coltitle=black,center title
+	}
+	, hbox
+}
+
+\newminted{haskell}{autogobble}
+
+\newtcblisting{haskell}
+{ listing engine  = minted
+	,	minted style    = colorful
+	,	minted language = Haskell
+	,	minted options  = { fontsize = \small
+		, breaklines
+		, autogobble
+		, linenos
+		, numbersep = 3mm
+		, escapeinside = \%\%
+	}
+	,	colback  = gray!5!white
+	, colframe = gray!75!black
+	, listing only
+	,	left = 5mm
+	, enhanced
+	,	overlay = { \begin{tcbclipinterior}
+			\fill[gray!80!blue!20!white] (frame.south west) rectangle ([xshift=5mm]frame.north west);
+		\end{tcbclipinterior}
+	}
+}
+
+
+\newtcblisting{oneLineHaskell}
+{ listing engine  = minted
+	,	minted style    = colorful
+	,	minted language = Haskell
+	,	minted options  = { fontsize = \normalsize
+		, breaklines
+		, autogobble
+		, numbersep = 3mm
+		, escapeinside = \%\%
+	}
+	,	colback  = gray!5!white
+	, colframe = gray!75!black
+	, listing only
+	,	left   = 2mm
+	, top    = 1mm
+	, bottom = 1mm
+	, enhanced
+}
+
+\colorlet{lightgreen}{green!50!white}
+\colorlet{lightblue}{blue!40!white}
+\colorlet{lightyellow}{yellow!50!white}
+\colorlet{lightred}{red!40!white}
+
+\newcommand*{\paper}{thesis}
+\newcommand*{\ext}[1]{\texttt{#1}}
+\newcommand*{\chk}[1]{\texttt{#1}}
+\newcommand*{\lvar}[1]{\textit{#1}}
+\newcommand*{\ilcode}[1]{\mintinline{Haskell}{#1}}	% inline code
+\newcommand*{\pilcode}[1]{\texttt{#1}}	% plain inline code
+
+% NOTE: This command need styRectDef to be defined locally
+\newcommand*{\tikzcustom}[0]
+{
+	% \tikzset{styRectDef/.style = {rectangle, rounded corners, draw=black, inner xsep=6mm, inner ysep=3mm}}
+	\tikzset{styRectGn/.style = {styRectDef, draw=green, fill=green!20}}
+	\tikzset{styRectBl/.style = {styRectDef, draw=cyan, fill=cyan!40}}
+	\tikzset{styRectGy/.style = {styRectDef, draw=gray, fill=gray!17}}
+	\tikzset{styConn/.style  = {very thick, ->, -latex, shorten <=1mm, shorten >=1mm}}
+	
+	\tikzset{styAnnotDef/.style = {rectangle, rounded corners, draw=black, inner xsep=2mm, inner ysep=1mm}}
+	\tikzset{styLabel/.style = {styAnnotDef, draw=black, fill=gray!10}}
+	
+}
+
+\newcounter{NoTableEntry}
+\renewcommand*{\theNoTableEntry}{NTE-\the\value{NoTableEntry}}
+
+\newcommand*{\notableentry}{%
+	\multicolumn{1}{@{}c@{}|}{%
+		\stepcounter{NoTableEntry}%
+		\vadjust pre{\zsavepos{\theNoTableEntry t}}% top
+		\vadjust{\zsavepos{\theNoTableEntry b}}% bottom
+		\zsavepos{\theNoTableEntry l}% left
+		\hspace{0pt plus 1filll}%
+		\zsavepos{\theNoTableEntry r}% right
+		\tikz[overlay]{%
+			\draw[red]
+			let
+			\n{llx}={\zposx{\theNoTableEntry l}sp-\zposx{\theNoTableEntry r}sp},
+			\n{urx}={0},
+			\n{lly}={\zposy{\theNoTableEntry b}sp-\zposy{\theNoTableEntry r}sp},
+			\n{ury}={\zposy{\theNoTableEntry t}sp-\zposy{\theNoTableEntry r}sp}
+			in
+			(\n{llx}, \n{lly}) -- (\n{urx}, \n{ury})
+			(\n{llx}, \n{ury}) -- (\n{urx}, \n{lly})
+			;
+		}% 
+	}%
+}
+
+\makeatletter
+\newcommand{\captionabove}[2][]
+{
+	\vskip-\abovecaptionskip
+	\vskip+\belowcaptionskip
+	\ifx\@nnil#1\@nnil
+	\caption{#2}%
+	\else
+	\caption[#1]{#2}%
+	\fi
+	\vskip+\abovecaptionskip
+	\vskip-\belowcaptionskip
+}
+
+% automatic period at the end of footnote
+\makeatletter%
+\long\def\@makefntext#1{%
+	\parindent 1em\noindent \hb@xt@ 1.8em{\hss\@makefnmark}#1.}
+\makeatother
+
+\newenvironment{vfitemize}
+{ \begin{itemize} %
+  \let\olditem\item %
+  \renewcommand\item{\vfill\olditem}
+} %
+{\end{itemize}}
+
+
+
+
+% EFOP template stuff
+\usebackgroundtemplate%
+{%
+	\includegraphics[width=\paperwidth,height=\paperheight]{background.jpg}%
+}
+
+\setbeamercolor{title}{fg=white}
+\setbeamercolor{author}{fg=white}
+\setbeamercolor{institute}{fg=white}
+\setbeamercolor{date}{fg=white}
+\setbeamercolor{frametitle}{fg=white}
+
+\AtBeginSection[]
+{
+	{
+	\usebackgroundtemplate%
+	{%
+		\includegraphics[width=\paperwidth,height=\paperheight]{section_head.jpg}%
+	}
+	
+	\begin{frame}
+	\centering
+	\color{white}\Huge\insertsectionhead
+	
+  \end{frame}
+	}
+
+}

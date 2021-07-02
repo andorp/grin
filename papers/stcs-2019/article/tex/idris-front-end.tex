@@ -1,0 +1,29 @@
+\documentclass[main.tex]{subfiles}
+\begin{document}
+	
+	Currently, our compiler uses the Idris compiler as its front end. The infrastructure can be divided into three components: the front end, that is responsible for generating GRIN IR from the Idris byte code; the optimizer, that applies GRIN-to-GRIN transformations to the GRIN program, possibly improving its performance; and the back end, that compiles the optimized GRIN code into an executable.
+	
+	\subsection{Front end}
+	
+	The front end uses the bytecode produced by the Idris compiler to generate the GRIN intermediate representation. The Idris bytecode is generated without any optimizations by the Idris compiler. The code generation from Idris to GRIN is really simple, the difficult part of refining the original program is handled by the optimizer. 
+	
+	\subsection{Optimizer}
+	\label{subsec:optimizer}
+	
+	The optimization pipeline consists of three stages, as can be seen in Figure~\ref{fig:idris-compilation-pipeline}. In the first stage, the optimizer iteratively runs the so-called \textit{regular optimizations}. These are the program transformations described in Urban Boquist's PhD thesis~\cite{boquist-phd}. A given pipeline of these transformations are run until the code reaches a fixed-point, and cannot be optimized any further. This set of transformation are not formally proven to be confluent, so theoretically different pipelines can result in different fixed-points\footnote{Although, experiments suggest that these transformations \textit{are} confluent}. Furthermore, some of these transformations can work against each other, so a fixed-point may not always exist. In this case, the pipeline can be caught in a loop, where the program returns to the same state over and over again. Fortunately, these loops can be detected, and the transformation pipeline can be terminated. 
+	
+	\begin{figure}[t] 
+		\centering
+		\subfile{idris-compilation-pipeline}
+	\end{figure}
+	
+	Following that, in the second stage, the optimizer runs the \textit{dead data elimination pass}. This pass can be quite demanding on both the memory usage and the execution time due to the several data-flow analyses the transformation requires. Also, it is a rather specific transformation, which means, running it multiple times might not improve the code any further. As a consequence, the dead data elimination pass is executed only a single time during the entire optimization process. Since the dead data elimination pass can enable other optimizations, the optimizer runs the regular optimizations a second time right after the DDE pass.
+	
+	\subsection{Back end}
+	\label{subsec:llvm-back-end}
+	
+	After the optimization process, the optimized GRIN code is passed onto the back end, which then generates an executable using the LLVM compiler framework. The input of the back end consists of the optimized GRIN code, the primitive operations of Idris and a minimal runtime (the latter two are both implemented in C). Currently, the runtime is only responsible for allocating heap memory for the program, and at this point it does not include a garbage collector.
+	
+	The first task of the back end is to compile the GRIN code into LLVM IR code which is then optimized further by the LLVM Modular Optimizer~\cite{opt}. Currently, the back end uses the default LLVM optimization pipeline. After that, the optimized LLVM code is compiled into an object file by the LLVM Static Compiler~\cite{llc}. Finally, Clang links together the object file with the C-implemented primitive operations and the runtime, and generates an executable binary.
+	
+\end{document}

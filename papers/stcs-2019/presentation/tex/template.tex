@@ -1,0 +1,59 @@
+\documentclass[bigger]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+
+\usebackgroundtemplate%
+{%
+    \includegraphics[width=\paperwidth,height=\paperheight]{background.jpg}%
+}
+
+\setbeamercolor{title}{fg=white}
+\setbeamercolor{author}{fg=white}
+\setbeamercolor{institute}{fg=white}
+\setbeamercolor{date}{fg=white}
+\setbeamercolor{frametitle}{fg=white}
+
+\title{\bf Sample title}
+\author{Anonymous}
+\institute{Eötvös Loránd University (ELTE), \\ Budapest, Hungary}
+\date{2018.}
+
+\begin{document}
+
+{
+\usebackgroundtemplate{\includegraphics[width=\paperwidth]{title.jpg}}%
+\frame{\vspace{15mm}\titlepage}
+}
+
+\begin{frame}{Introduction}
+\begin{itemize}
+\item 1
+\item 2
+\item 3
+\end{itemize}
+\end{frame}
+
+% this slide need not be used in the presentation, but must be
+% present when you archieve your talk
+
+{
+\usebackgroundtemplate{\includegraphics[width=\paperwidth]{title.jpg}}%
+\begin{frame}{}
+
+\bigskip\bigskip\bigskip
+
+{\bf\Huge\color{white} THANK YOU}
+
+\bigskip
+
+{\bf\Huge\color{white} FOR YOUR}
+
+\bigskip
+
+{\bf\Huge\color{white} ATTENTION!}
+
+\end{frame}
+}
+
+\end{document}

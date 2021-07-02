@@ -1,0 +1,12 @@
+\documentclass[main.tex]{subfiles}
+\begin{document}
+	
+	In this paper we presented a modern look at GRIN, an optimizing functional language back end originally published by Urban Bouquist.
+	
+	We gave an overview of the GRIN framework, and introduced the reader to the related research on compilers utilizing GRIN and whole program optimization. Then we gave an extension for the heap points-to analysis with more accurate basic value tracking. This allowed for defining a type inference algorithm for the GRIN intermediate representation, which then was used in the implementation of the LLVM back end. Following that, we detailed the dead data elimination pass and the required data-flow analyses, originally published by Remi Turk. We also presented an extension of the dummification transformation which is compatible with the typed representation of GRIN by extending the IR with the \pilcode{undefined} value. Furthermore, we gave an alternative method for transforming producer-consumer groups by using basic blocks. Our last contribution was the implementation of the Idris front end.
+	
+	We evaluated our implementation of GRIN using simple Idris programs taken from the book \textit{Type-driven development with Idris}~\cite{tdd-idris} by Edwin Brady. We measured the optimized GRIN programs, as well as the generated binaries. It is important to note, that the measurements presented in this paper can only be considered preliminary, given the compiler needs further work to be comparable to other systems. Nevertheless, these statistics are still relevant, since they provide valuable information about the effectiveness of the optimizer. The results demonstrate that the GRIN optimizer can significantly improve the performance of GRIN programs. Furthermore, they indicate that the GRIN optimizer performs optimizations orthogonal to the LLVM optimizations, which supports the motivation behind the framework. As for dead data elimination, we found that it can facilitate other transformations during the optimization pipeline, and that it can considerably reduce the size of the generated binaries.
+	
+	All things considered, the current implementation of GRIN brought adequate results. However, there are still many promising ideas left to research.
+	
+\end{document}

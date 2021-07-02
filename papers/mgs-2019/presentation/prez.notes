@@ -1,0 +1,83 @@
+Intro to GRIN:
+  - the problem (small functions, laziness)
+  - GRIN is the solution (interprocedural, whole, IR)
+
+  - store, fetch, update
+  - eval
+  - (other restrictions ...)
+
+  - 5-6 (*)
+
+  - simple code generation
+  - many small transformations
+  - HPT is the core
+
+  - 6-7
+
+Extensions:
+  - LLVM (sum simple?)
+  - new HPT:
+    - original: for node info
+    - then: node info with simple type info (for LLVM)
+    - finally: type inference (polymorph primops)
+
+  - 8-9 -1 (less HPT)
+
+  - Dead Data Elimination
+
+Dead Data Elimination:
+  - first by Remi Turk for Agda
+  - motivational example: (*)
+    - length (List -> Nat)
+  - other applications:
+    - Map -> Set
+    - type class dictionaries
+    - Vector type index (EUTypes)
+
+  - 11-12
+
+  - what else do we need?
+    - CBy (extended HPT, example) (*)
+    - LVA (standard)
+    - producer grouping (graph example) (*)
+    - transformations
+
+  - 14-15
+
+Results:
+  - only interpreted results
+  - pipeline setup
+  - diagrams
+
+  - 18 - 19
+
+Conclusions:
+  - the optimizer works well:
+    - #stores, #fetches, #funcalls and #cases significantly reduced
+    - code structure closer to imperative style
+
+  - DDE is:
+    - a bit costly
+    - kinda specific, but can work wonders
+    - can trigger other transformations
+
+   - 20
+
+
+Q&A:
+  - Why do we need Lambda? (closure conversion + lambda lifting)
+    cc: find free variables
+    ll: convert lambdas to top level functions
+
+  - eval inlining ~?~ STG + eval/apply -> GRIN with indirect calls (funptr) + static analysis
+  - analysis cost: compiled abstract interpretation
+
+
+no stores & no fetches --> in ideal case, everything can be put into registers (in worst onto the stack)
+
+
+Notes:
+  - upto example (with head?)
+  - LLVM code example
+  - opt list
+  - max 25 slides

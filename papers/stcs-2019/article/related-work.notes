@@ -1,0 +1,109 @@
+GRIN:
+	- Boq:
+		- HPT ~ Andersen
+  - UHC
+    - goal:
+      - complete compiler
+      - for teaching & research
+      - uses GRIN "just as a backend"
+    - AGs
+    - LLVM codegen, .Net, JVM, JS
+    - has its own front end
+    - synchronous exceptions (throw + catch)
+      - new AST constructs (Boquist GRIN with try/catch monadic operations)
+    - bad GC
+  - JHC (Meacham GRIN)
+    - some modifications to GRIN:
+      - mutable variables
+      - some type system (from front end- PTS)
+      - memory regions instead of arity raising (put node onto STACK instead of HEAP)
+      - IO exceptions - only throw ~ halt
+    - goal: efficient Haskell code
+    - without runtime (just some system calls)
+    - Haskell -> GRIN -> C
+    - compact GRIN code
+    - has its own front end
+    - typed GRIN
+      - probably for GC
+    - pure type system
+      - more general than the available type systems back then
+      - some optimizations are done on this level
+  - AJHC
+    - forked then remerged
+    - NetBSD audio driver
+    - formal methods in systems programming
+    - JHC had the east amount of unknown symbols
+  - LHC (David Himmelstrup)
+    - Bedrock (JHC Grin-like language)
+    - LLVM codegen
+
+
+GHC:
+	- multi-threading
+	- async exceptions
+	- incremental conmpilation
+	- language extensions (FE)
+	- STM (software transactional memory) - monadic API
+
+Whole program opt:
+  - Intel
+    - goal:
+      - highly optimized code generation: (e.g.: vectorization)
+      - for highly demanding computatons (numerical algorithms)
+    - has no FE (uses GHC), receives external core from GHC
+      - some extra work required see Notes
+    - two parts: HRC (front end), FLRC (optimizer) [written in MLton]
+    - FLRC (Functional Language Research Compiler):
+      - general BE for (strict) functional languages
+      - has pointers
+      - no whole program defunctionalization (ptrs instead of eval)
+      - has basic blocks
+      - sync exceptions
+      - multi-threading
+    - long running research project: optimizing compiler for functional languages (one of them FE is HRC)
+
+  - MLton:
+  	- goal:
+  		- compiler for standard ML
+  		- efficiency
+  		- own FE (why?)
+  		- whole program optimization
+  		- defunctorization:
+  			- expose types hidden by functors (paramerized modules)
+  			- expose function calls accross modules
+  		- IR:
+  			- has many different IRs (each can explicitly express a certain feature, making the analysis easier)
+  			- basic block
+  			- 0CFA ~ similar to defunc. (language can be higher order) (follows closures instead of tags) - on which IR
+  			- contification:
+  				- functions used as continuations turned into jumps
+  				- tries to transform recursive calls into tail calls
+
+
+"Our GRIN":
+  - SSA
+
+
+Notes:
+  - core vs STG:
+    - core has some invariants (e.g.: [RealWorld] token chain)
+    - STG is for codegen (ctors/primops are saturated)
+      - denotational semantics ~ execution of lambda calculus
+      - operationaé semantics ~ how to execute STG like an imperative language (funcalls to sequences)
+  - C-- (like LLVM befor LLVM)
+    - imperative
+    - to their own machine code or LLVM
+
+
+Haskell:
+  - for humans with sugar
+Core:
+  - like Haskell but wo sugars
+  - has type info
+STG:
+  - no type lambda/type app
+  - only runtime-relevant info
+  - explicit laziness in OPERATIONAL semantics
+C--:
+  - very close to machine
+  - less precise semantics (e.g.: only WORDs) (only "implicit" semantics)

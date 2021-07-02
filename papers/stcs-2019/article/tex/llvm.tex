@@ -1,0 +1,60 @@
+\documentclass[main.tex]{subfiles}
+\begin{document}
+	
+	%TODO: GRIN: functional domain - imperative domain, LLVM: architecture independent domain - architecture specific domain
+	
+	LLVM is a collection of compiler technologies consisting of an intermediate representation called the LLVM IR, a modularly built compiler framework and many other tools built on these technologies. This section discusses the benefits and challenges of compiling GRIN to LLVM.
+	
+	\subsection{Benefits and Challenges}
+	
+	The main advantage LLVM has over other CISC and RISC based languages lies in its modular design and library based structure. The compiler framework built around LLVM is entirely customizable and can generate highly optimized low level machine code for most architectures. Furthermore, it offers a vast range of tools and features out of the box, such as different debugging tools or compilation to WebAssembly.
+	
+	However, compiling unrefined functional code to LLVM does not yield the results one would expect. Since LLVM was mainly designed for imperative languages, functional programs may prove to be difficult to optimize. The reason for this is that functional artifacts or even just the general structuring of functional programs can render conventional optimization techniques useless.
+	
+	While LLVM acts as a transitional layer between architecture independent, and architecture specific domains, GRIN serves the same purpose for the functional and imperative domains. Figure~\ref{fig:grin-back-end} illustrates this domain separtion. The purpose of GRIN is to eliminate functional artifacts and restructure functional programs in a way so that they can be efficiently optimized by conventional techniques.
+	
+	\begin{figure}[h]
+		\centering
+		\begin{adjustbox}{scale = 1.4}
+			\tikzset{every loop/.style={-{Stealth[scale=1.5]}}}
+			
+			\begin{tikzpicture}[ node distance = 0.9cm and 1.5cm
+			, on grid 
+			, loop/.append style={-triangle 60}
+			]
+			
+			\node [draw=black] (haskell)    									{Haskell};
+			\node [draw=black] (idris)   [left  =of haskell]  {Idris};
+			\node [draw=black] (agda)    [right =of haskell]  {Agda};
+			\node [draw=black] (grin)    [below =of haskell]  {GRIN};
+			\node [draw=black] (llvm)    [below =of grin]     {LLVM};
+			
+			\path[-{Stealth[scale=1.5]}] 
+			(idris) edge [] (grin)
+			(haskell) edge [] (grin)
+			(agda) edge [] (grin)
+			(grin) edge [] (llvm);
+			
+			
+			\end{tikzpicture}
+		\end{adjustbox}
+		\caption{Possible representations of different functional languages}
+		\label{fig:grin-back-end}
+	\end{figure}
+	
+	The main challenge of compiling GRIN to LLVM has to do with the discrepancy between the respective type systems of these languages: GRIN is untyped, while LLVM has static typing. In order to make compilation to LLVM possible\footnote{As a matter of fact, compiling untyped GRIN to LLVM \emph{is} possible, since only the registers are statically typed in LLVM, the memory is not. So in principle, if all variables were stored in memory, generating LLVM code from untyped GRIN would be plausible. However, this approach would prove to be very inefficient}, we need a typed representation for GRIN as well. Fortunately, this problem can be circumvented by implementing a type inference algorithm for the language. To achieve this, we can extend an already existing component of the framework, the heap points-to data-flow analysis.
+	
+	\subsection{Heap points-to Analysis}
+	
+	Heap points-to analysis (HPT in the followings), or pointer analysis is a commonly used data-flow analysis in the context of imperative languages. The result of the analysis contains information about the possible variables or heap locations a given pointer can point to. In the context of GRIN, it is used to determine the type of data constructors (or nodes) a given variable could have been constructed with. The result is a mapping of variables and abstract heap locations to sets of data constructors.
+	
+	%TODO: example, referece
+	
+	The original version of the analysis presented in \cite{boquist-phd} and further detailed in \cite{boquist-grin} only supports node level granularity. This means, that the types of literals are not differentiated, they are unified under a common "basic value" type. Therefore, the analysis cannot be used for type inference as it is. In order to facilitate type inference, HPT has to be extended, so that it propagates type information about literals as well. This can be easily achieved by defining primitive types for the literal values. Using the result of the modified algorithm, we can generate LLVM IR code from GRIN.
+	
+	%TODO: reference UHC paper
+	
+	However, in some cases the monomorphic type inference algorithm presented above is not sufficient. For example, the Glasgow Haskell Compiler has polymorphic primitive operations. This means, that despite GRIN being a monomorphic language, certain compiler front ends can introduce external polymorphic functions to GRIN programs. To resolve this problem, we have to further extend the heap points-to analysis. The algorithm now needs a table of external functions with their respective type information. These functions \emph{can} be polymorphic, hence they need special treatment during the analysis. When encountering external function applications, the algorithm has to determine the concrete type of the return value based on the possible types of the function arguments. Essentially, it has to fill all the type variables present in the type of the return value with concrete types. This can be achieved by unification. Fortunately, the unification algorithm can be expressed in terms of the same data-flow operations HPT already uses.
+	
+	
+\end{document}

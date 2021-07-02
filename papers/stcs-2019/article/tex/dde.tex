@@ -1,0 +1,136 @@
+\documentclass[main.tex]{subfiles}
+\begin{document}
+	
+	% TODO: reference Remi Turk & HRC
+	% TODO: example for length
+	
+	Conventional dead code eliminating optimizations usually only remove statements or expressions from programs; however, \emph{dead data elimination} can transform the underlying data structures themselves. Essentially, it can specialize a certain data structure for a given use-site by removing or transforming unnecessary parts of it. It is a powerful optimization technique that --- given the right circumstances --- can significantly decrease memory usage and reduce the number of executed heap operations.
+	
+	Within the framework of GRIN, it was Remi Turk, who presented the initial version of dead data elimination in his master's thesis~\cite{remi-masters}. His original implementation used intraprocedural analyses and an untyped representation of GRIN. We extended the algorithm with interprocedural analyses, and improved the ``dummification" process (see Sections~\ref{subsec:producers-and-consumers}~and~\ref{subsec:undefined}). In the followings we present a high level overview of the original dead data elimination algorithm, as well as detail some of our modifications.
+	
+	\subsection{Dead Data Elimination in GRIN}
+	
+	In the context of GRIN, dead data elimination removes dead fields of data constructors (or nodes) for both definition- and use-sites. In the followings, we will refer to definition-sites as \emph{producers} and to use-sites as \emph{consumers}. Producers and consumers are in a \emph{many-to-many} relationship with each other. A producer can define a variable used by many consumers, and a consumer can use a variable possibly defined by many producers. It only depends on the control flow of the program. Program~code~\ref{code:dde-simple} illustrates dead data elimination on a very simple example with a single producer and a single consumer.
+	
+	\begin{codeFloat}[h]
+		\begin{center}
+			\begin{minipage}{0.42\textwidth}
+				\begin{haskell}
+					main = 
+					  x <- pure (CPair 0 1)
+					  y <- snd x
+					  pure y 
+					
+					snd p =
+					  (CPair a b) <- pure p
+					  pure b
+				\end{haskell}
+				\subcaption{Before the transformation}
+			\end{minipage}
+			$\xRightarrow{\text{\emph{a} is dead}}$
+			\begin{minipage}{0.4\textwidth}
+				\begin{haskell}
+					main = 
+					  x <- pure (CPair' 1)
+					  y <- snd x
+					  pure y 
+					
+					snd p =
+					  (CPair' b) <- pure p
+					  pure b
+				\end{haskell}
+				\subcaption{After the transformation}
+			\end{minipage}
+		\end{center}
+		\caption{A simple example for dead data elimination}
+		\label{code:dde-simple}
+	\end{codeFloat}
+
+	As we can see, the first component of the pair is never used, so the optimization can safely eliminate the first field of the node. It is important to note, that the transformation has to remove the dead field for both the producer and the consumer. Furthermore, the name of the node also has to be changed to preserve type correctness, since the transformation is specific to each producer-consumer group. This means, the data constructor \pilcode{CPair} still exists, and it can be used by other parts of the program, but a new, specialized version is introduced for any optimizable producer-consumer group\footnote{Strictly speaking, a new version is only introduced for each different set of live fields used by producer-consumer groups}.
+	
+	Dead data elimination requires a considerable amount of data-flow analyses and possibly multiple transformation passes. First of all, it has to identify potentially removable dead fields of a node. This information can be acquired by running liveness analysis on the program (see Section~\ref{sub-sec:lva}). After that, it has to connect producers with consumers by running the \emph{created-by data-flow analysis}. Then it has to group producers together sharing at least one common consumer, and determine whether a given field for a given producer can be removed globally, or just dummified locally. Finally, it has to transform both the producers and the consumers.
+	
+	\subsection{Created-by Analysis}
+	
+	The created-by analysis, as its name suggests is responsible for determining the set of producers a given variable-was possibly created by. For our purposes, it is sufficient to track only node valued variables, since these are the only potential candidates for dead data elimination. Analysis~example~\ref{analysis:cby} demonstrates how the algorithm works on a simple program.
+	
+	\begin{analysisFloat}[h]
+		\begin{center}
+			\begin{minipage}{0.43\textwidth}
+				\begin{haskell}
+					null xs = 
+					  y <- case xs of
+					    (CNil) -> 
+					      a <- pure (CTrue)
+					      pure a
+					    (CCons z zs) ->
+					      b <- pure (CFalse)
+					      pure b
+					  pure y 
+				\end{haskell}
+				\subcaption{Input program}
+			\end{minipage}
+			\hspace{1cm}
+			\begin{minipage}{0.44\textwidth}
+				\begin{tcolorbox}[tab2,tabularx={l|r}]
+					Var             & Producers \\
+					\hline\hline
+					\pilcode{xs}    & $\set{CNil[\dots], CCons[\dots]}$\footnotemark[1] \\\hline
+					\pilcode{a}     & $\set{CTrue[\pilcode{a}]}$	\\\hline
+					\pilcode{b}     & $\set{CFalse[\pilcode{b}]}$ \\\hline
+					\pilcode{y}     & $\set{CTrue[\pilcode{a}], CFalse[\pilcode{b}]}$ \\
+				\end{tcolorbox}
+				\subcaption{Anyalsis result}
+			\end{minipage}
+		\end{center}
+		\caption{An example demonstrating the created-by analysis}
+		\label{analysis:cby}
+	\end{analysisFloat}
+
+	The result of the analysis is a mapping from variable names to set of producers grouped by their tags. For example, we could say that ''variable \pilcode{y} was created by the producer \pilcode{a} given it was constructed with the \pilcode{CTrue} tag''. Naturally, a variable can be constructed with many different tags, and each tag can have multiple producers. Also, it is important to note that some variables are their own producers. This is because producers are basically definitions-sites or bindings, identified by the name of the variable on their left-hand sides. However, not all bindings have variables on their left-hand side, and some values may not be bound to variables. Fortunately, this problem can be easily solved by a simple program transformation.
+	
+	\footnotetext[1]{\label{footnote:cby-example}For the sake of simplicity, we will assume that \pilcode{xs} was constructed with the \pilcode{CNil} and \pilcode{CCons} tags. Also its producers are irrelevant in this example}
+	
+	\subsection{Grouping Producers}
+	
+	On a higher abstraction level, the result of the created-by analysis can be interpreted as a bipartite graph between producers and consumers. One group of nodes represents the producers and the other one represents the consumers. A producer is connected to a consumer if and only if the value created by the producer can be consumed by the consumer. Furthermore, each component of the graph corresponds to one producer-consumer group. Each producer inside the group can only create values consumed by the consumers inside the same group, and a similar statement holds for the consumers as well.
+	
+	\subsection{Transforming Producers and Consumers}
+	\label{subsec:producers-and-consumers}
+	
+	As mentioned earlier, the transformation applied by dead data elimination can be specific for each producer-consumer group, and both the producers and the consumers have to be transformed. Also, the transformation can not always simply remove the dead field of a producer. Take a look at Figure~\ref{fig:producers-and-consumers}. 
+	
+	\begin{figure}[h]
+		\centering
+		\begin{adjustbox}{scale = 1.5}
+			\begin{tikzpicture}[ node distance = 1cm and 2cm, on grid ]
+			
+			\node [shape=circle,draw=black] (P1)                 {$P_1$};
+			\node [shape=circle,draw=black] (P2) [right =of P1]  {$P_2$};
+			\coordinate (Middle) at ($(P1)!0.5!(P2)$);
+			\node [shape=circle,draw=black] (C2) [below =of Middle]  {$C_2$};
+			\node [shape=circle,draw=black] (C1) [left =of C2]       {$C_1$};
+			\node [shape=circle,draw=black] (C3) [right =of C2]      {$C_3$};
+			
+			\path[-{Stealth[scale=1.5]}] (P1) edge [] (C1)
+			(P1) edge [] (C2)
+			(P2) edge [] (C2)
+			(P2) edge [] (C3);
+			
+			
+			\end{tikzpicture}
+		\end{adjustbox}
+		\caption{Producer-consumer group}
+		\label{fig:producers-and-consumers}
+	\end{figure}
+
+	As we can see, producers $P_1$ and $P_2$ share a common consumer $C_2$. Let's assume, that the shared value is a \pilcode{CPair} node with two fields, and neither $C_1$, nor $C_2$ uses the first field of that node. This means, the first field of the \pilcode{CPair} node is locally dead for producer $P_1$. Also, suppose that $C_3$ \emph{does} use the first field of that node, meaning it is live for $P_2$, hence it cannot be removed. In this situation, if the transformation were to remove the locally dead field from $P_1$, then it would lead to a type mismatch at $C_2$, since $C_2$ would receive two \pilcode{CPair} nodes with different number of arguments, with possibly different types for their first fields. In order to resolve this issue the transformation has to rename the tag at $P_1$ to \pilcode{CPair'}, and create new patterns for \pilcode{CPair'} at $C_1$ and $C_2$ by duplicating and renaming the existing ones for \pilcode{CPair}. This way, we can avoid potential memory operations at the cost of code duplication.
+	
+	In fact, even the code duplication can be circumvented by introducing the notion of \emph{basic blocks} to the intermediate representation. This way, we still need to generate new alternatives (new patterns), but their right-hand sides will be simple jump instructions to the basic blocks of the original alternative's right-hand side.
+	
+	\subsection{The \pilcode{undefined} value}
+	\label{subsec:undefined}
+	
+	Another option would be to only \emph{dummify} the locally dead fields. In other words, instead of removing the field at the producer and restructuring the consumers, the transformation could simply introduce a dummy value for that field. The dummy value could be any placeholder with the same type as the locally dead field. For instance, it could be any literal of that type. A more sophisticated solution would be to introduce an undefined value. The \pilcode{undefined} value is a placeholder as well, but it carries much more information. By marking certain values undefined instead of just introducing placeholder literals, we can facilitate other optimizations down the pipeline. However, each \pilcode{undefined} value has to be explicitly type annotated for the heap points-to analysis to work correctly. Just like the other approach mentioned earlier, this alternative also solves the problem of code duplication at the cost of some modifications to the intermediate representation.
+	
+\end{document}
